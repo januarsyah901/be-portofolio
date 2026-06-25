@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import prisma from '../prisma';
+import supabase from '../supabase';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -7,10 +7,13 @@ const router = Router();
 // GET /api/blog - Public route to fetch all visible TikTok video entries
 router.get('/', async (req, res) => {
   try {
-    const videos = await prisma.blogVideo.findMany({
-      where: { visible: true },
-      orderBy: { order: 'asc' }
-    });
+    const { data: videos, error } = await supabase
+      .from('BlogVideo')
+      .select('*')
+      .eq('visible', true)
+      .order('order', { ascending: true });
+
+    if (error) throw error;
     return res.json(videos);
   } catch (error) {
     console.error('Error fetching public blog videos:', error);
@@ -21,9 +24,12 @@ router.get('/', async (req, res) => {
 // GET /api/admin/blog - Admin route to fetch all blog videos
 router.get('/admin-list', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const videos = await prisma.blogVideo.findMany({
-      orderBy: { order: 'asc' }
-    });
+    const { data: videos, error } = await supabase
+      .from('BlogVideo')
+      .select('*')
+      .order('order', { ascending: true });
+
+    if (error) throw error;
     return res.json(videos);
   } catch (error) {
     console.error('Error fetching admin blog videos:', error);
@@ -40,15 +46,19 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
   }
 
   try {
-    const video = await prisma.blogVideo.create({
-      data: {
+    const { data: video, error } = await supabase
+      .from('BlogVideo')
+      .insert({
         videoId,
         caption: caption || '',
         tags: Array.isArray(tags) ? tags : [],
         order: typeof order === 'number' ? order : 0,
         visible: typeof visible === 'boolean' ? visible : true
-      }
-    });
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
     return res.status(201).json(video);
   } catch (error) {
     console.error('Error creating blog video:', error);
@@ -67,24 +77,30 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
       return res.status(400).json({ message: 'ID entry tidak valid.' });
     }
 
-    const existingVideo = await prisma.blogVideo.findUnique({
-      where: { id: videoIdNum }
-    });
+    const { data: existingVideo, error: findError } = await supabase
+      .from('BlogVideo')
+      .select('*')
+      .eq('id', videoIdNum)
+      .single();
 
-    if (!existingVideo) {
+    if (findError || !existingVideo) {
       return res.status(404).json({ message: 'Entry video tidak ditemukan.' });
     }
 
-    const updatedVideo = await prisma.blogVideo.update({
-      where: { id: videoIdNum },
-      data: {
+    const { data: updatedVideo, error: updateError } = await supabase
+      .from('BlogVideo')
+      .update({
         videoId: videoId !== undefined ? videoId : existingVideo.videoId,
         caption: caption !== undefined ? caption : existingVideo.caption,
         tags: Array.isArray(tags) ? tags : existingVideo.tags,
         order: typeof order === 'number' ? order : existingVideo.order,
         visible: typeof visible === 'boolean' ? visible : existingVideo.visible
-      }
-    });
+      })
+      .eq('id', videoIdNum)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
 
     return res.json(updatedVideo);
   } catch (error) {
@@ -103,17 +119,22 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: 
       return res.status(400).json({ message: 'ID entry tidak valid.' });
     }
 
-    const existingVideo = await prisma.blogVideo.findUnique({
-      where: { id: videoIdNum }
-    });
+    const { data: existingVideo, error: findError } = await supabase
+      .from('BlogVideo')
+      .select('*')
+      .eq('id', videoIdNum)
+      .single();
 
-    if (!existingVideo) {
+    if (findError || !existingVideo) {
       return res.status(404).json({ message: 'Entry video tidak ditemukan.' });
     }
 
-    await prisma.blogVideo.delete({
-      where: { id: videoIdNum }
-    });
+    const { error: deleteError } = await supabase
+      .from('BlogVideo')
+      .delete()
+      .eq('id', videoIdNum);
+
+    if (deleteError) throw deleteError;
 
     return res.json({ message: 'Entry video berhasil dihapus.' });
   } catch (error) {

@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../prisma';
+import supabase from '../supabase';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -16,11 +16,13 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await prisma.adminUser.findUnique({
-      where: { username }
-    });
+    const { data: user, error } = await supabase
+      .from('AdminUser')
+      .select('*')
+      .eq('username', username)
+      .maybeSingle();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(401).json({ message: 'Username atau password salah.' });
     }
 
@@ -47,12 +49,13 @@ router.post('/login', async (req, res) => {
 // GET /api/auth/me (Check token validity)
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = await prisma.adminUser.findUnique({
-      where: { id: req.userId },
-      select: { id: true, username: true }
-    });
+    const { data: user, error } = await supabase
+      .from('AdminUser')
+      .select('id, username')
+      .eq('id', req.userId)
+      .maybeSingle();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(404).json({ message: 'User tidak ditemukan.' });
     }
 

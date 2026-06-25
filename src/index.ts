@@ -23,9 +23,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve frontend public directory uploads statically (fallback in case frontend dev server doesn't catch them)
-app.use('/assets/uploads', express.static(path.join(__dirname, '../../public/assets/uploads')));
-app.use('/cv.pdf', express.static(path.join(__dirname, '../../public/cv.pdf')));
+// Serve local backend public directory uploads statically
+app.use('/assets/uploads', express.static(path.join(__dirname, '../public/assets/uploads')));
+app.use('/cv.pdf', express.static(path.join(__dirname, '../public/cv.pdf')));
 
 // Routes
 app.use('/api/auth', authRoutes);

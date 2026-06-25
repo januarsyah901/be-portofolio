@@ -6,9 +6,9 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
-// Ensure uploads directory exists in frontend public folder
-const frontendPublicDir = path.join(__dirname, '../../../public');
-const uploadsDir = path.join(frontendPublicDir, 'assets/uploads');
+// Ensure uploads directory exists in local backend public folder
+const publicDir = path.join(__dirname, '../../public');
+const uploadsDir = path.join(publicDir, 'assets/uploads');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -60,7 +60,7 @@ router.post('/image', authenticateToken, (req: AuthenticatedRequest, res: Respon
 // Multer storage for CV (always saves as cv.pdf in public folder)
 const cvStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, frontendPublicDir);
+    cb(null, publicDir);
   },
   filename: (req, file, cb) => {
     cb(null, 'cv.pdf');
