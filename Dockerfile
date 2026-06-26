@@ -1,11 +1,13 @@
 # Deploying with Node.js 22 to CapRover
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /usr/src/app
 
-COPY . .
+COPY package*.json ./
 
 RUN npm install && npx prisma generate
+
+COPY . .
 
 RUN npm run build
 
