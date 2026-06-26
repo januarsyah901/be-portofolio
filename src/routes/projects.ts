@@ -1,19 +1,16 @@
 import { Router, Response } from 'express';
-import supabase from '../supabase';
+import prisma from '../lib/prisma';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
 // GET /api/projects - Public route to fetch all visible projects
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res: Response) => {
   try {
-    const { data: projects, error } = await supabase
-      .from('Project')
-      .select('*')
-      .eq('visible', true)
-      .order('order', { ascending: true });
-
-    if (error) throw error;
+    const projects = await prisma.project.findMany({
+      where: { visible: true },
+      orderBy: { order: 'asc' }
+    });
     return res.json(projects);
   } catch (error) {
     console.error('Error fetching public projects:', error);
@@ -22,14 +19,11 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/admin/projects - Admin route to fetch all projects
-router.get('/admin-list', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/admin-list', authenticateToken, async (_req: AuthenticatedRequest, res: Response) => {
   try {
-    const { data: projects, error } = await supabase
-      .from('Project')
-      .select('*')
-      .order('order', { ascending: true });
-
-    if (error) throw error;
+    const projects = await prisma.project.findMany({
+      orderBy: { order: 'asc' }
+    });
     return res.json(projects);
   } catch (error) {
     console.error('Error fetching admin projects:', error);
@@ -46,22 +40,18 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
   }
 
   try {
-    const { data: project, error } = await supabase
-      .from('Project')
-      .insert({
+    const project = await prisma.project.create({
+      data: {
         title,
         description,
-        imageUrl,
-        liveUrl,
-        githubUrl,
+        imageUrl: imageUrl || null,
+        liveUrl: liveUrl || null,
+        githubUrl: githubUrl || null,
         tags: Array.isArray(tags) ? tags : [],
         order: typeof order === 'number' ? order : 0,
         visible: typeof visible === 'boolean' ? visible : true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+      }
+    });
     return res.status(201).json(project);
   } catch (error) {
     console.error('Error creating project:', error);
@@ -72,23 +62,20 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 // PUT /api/projects/reorder - Reorder projects (bulk update)
 router.put('/reorder', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   const { orderedIds } = req.body;
-  
+
   if (!Array.isArray(orderedIds)) {
     return res.status(400).json({ message: 'orderedIds harus berupa array dari ID proyek.' });
   }
 
   try {
-    const promises = orderedIds.map((id: number, index: number) =>
-      supabase
-        .from('Project')
-        .update({ order: index + 1 })
-        .eq('id', Number(id))
+    await prisma.$transaction(
+      orderedIds.map((id: number, index: number) =>
+        prisma.project.update({
+          where: { id: Number(id) },
+          data: { order: index + 1 }
+        })
+      )
     );
-    
-    const results = await Promise.all(promises);
-    const error = results.find(r => r.error)?.error;
-    if (error) throw error;
-
     return res.json({ message: 'Urutan proyek berhasil diperbarui.' });
   } catch (error) {
     console.error('Error reordering projects:', error);
@@ -107,19 +94,17 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
       return res.status(400).json({ message: 'ID proyek tidak valid.' });
     }
 
-    const { data: existingProject, error: findError } = await supabase
-      .from('Project')
-      .select('*')
-      .eq('id', projectId)
-      .single();
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
 
-    if (findError || !existingProject) {
+    if (!existingProject) {
       return res.status(404).json({ message: 'Proyek tidak ditemukan.' });
     }
 
-    const { data: updatedProject, error: updateError } = await supabase
-      .from('Project')
-      .update({
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
         title: title !== undefined ? title : existingProject.title,
         description: description !== undefined ? description : existingProject.description,
         imageUrl: imageUrl !== undefined ? imageUrl : existingProject.imageUrl,
@@ -127,14 +112,9 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
         githubUrl: githubUrl !== undefined ? githubUrl : existingProject.githubUrl,
         tags: Array.isArray(tags) ? tags : existingProject.tags,
         order: typeof order === 'number' ? order : existingProject.order,
-        visible: typeof visible === 'boolean' ? visible : existingProject.visible,
-        updatedAt: new Date().toISOString()
-      })
-      .eq('id', projectId)
-      .select()
-      .single();
-
-    if (updateError) throw updateError;
+        visible: typeof visible === 'boolean' ? visible : existingProject.visible
+      }
+    });
 
     return res.json(updatedProject);
   } catch (error) {
@@ -153,22 +133,17 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: 
       return res.status(400).json({ message: 'ID proyek tidak valid.' });
     }
 
-    const { data: existingProject, error: findError } = await supabase
-      .from('Project')
-      .select('*')
-      .eq('id', projectId)
-      .single();
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
 
-    if (findError || !existingProject) {
+    if (!existingProject) {
       return res.status(404).json({ message: 'Proyek tidak ditemukan.' });
     }
 
-    const { error: deleteError } = await supabase
-      .from('Project')
-      .delete()
-      .eq('id', projectId);
-
-    if (deleteError) throw deleteError;
+    await prisma.project.delete({
+      where: { id: projectId }
+    });
 
     return res.json({ message: 'Proyek berhasil dihapus.' });
   } catch (error) {
