@@ -16,4 +16,4 @@ RUN npm run build
 
 EXPOSE 3001
 
-CMD npx prisma migrate deploy && npm start
+CMD ./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && npm start
