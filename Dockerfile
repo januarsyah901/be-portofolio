@@ -16,4 +16,4 @@ RUN npm run build
 
 EXPOSE 3001
 
-CMD ./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && PORT=80 npm start
+CMD ./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && npx ts-node prisma/seed.ts && PORT=80 npm start
