@@ -20,6 +20,6 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
     req.userId = decoded.userId;
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Token tidak valid atau kedaluwarsa.' });
+    return res.status(401).json({ message: 'Token tidak valid atau kedaluwarsa.' });
   }
 }
