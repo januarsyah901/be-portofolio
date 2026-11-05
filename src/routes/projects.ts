@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken, authenticateAdminOrReadToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ router.get('/', async (_req, res: Response) => {
 });
 
 // GET /api/admin/projects - Admin route to fetch all projects
-router.get('/admin-list', authenticateToken, async (_req: AuthenticatedRequest, res: Response) => {
+router.get('/admin-list', authenticateAdminOrReadToken, async (_req: AuthenticatedRequest, res: Response) => {
   try {
     const projects = await prisma.project.findMany({
       orderBy: { order: 'asc' }

@@ -11,6 +11,7 @@ import projectRoutes from './routes/projects';
 import testimonialRoutes from './routes/testimonials';
 import blogRoutes from './routes/blog';
 import uploadRoutes from './routes/upload';
+import tokenRoutes from './routes/tokens';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/admin/upload', uploadRoutes);
+app.use('/api/admin/tokens', tokenRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
