@@ -1,4 +1,3 @@
-# Deploying with Node.js 22 to CapRover
 FROM node:22-slim
 
 WORKDIR /usr/src/app

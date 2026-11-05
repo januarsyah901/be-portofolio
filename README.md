@@ -9,7 +9,7 @@ Backend API for portfolio website built with Node.js, Express, TypeScript, Prism
 - **Database**: PostgreSQL (via Prisma ORM)
 - **Auth**: JWT with bcryptjs
 - **File Upload**: Multer
-- **Deployment**: CapRover (Docker)
+- **Deployment**: Docker Compose (Pop!_OS Server)
 
 ## Features
 
@@ -76,13 +76,12 @@ JWT_SECRET="your-secret-key"
 PORT=3001
 ```
 
-## Deployment (CapRover)
+## Deployment (Docker Compose)
 
-The project includes a `captain-definition` and `Dockerfile` for CapRover deployment.
+The project includes a `Dockerfile` for deployment via Docker Compose.
 
 ```bash
-# Build and deploy via CapRover CLI or dashboard
-caprover deploy
+docker compose up -d --build
 ```
 
 ## Database Schema
