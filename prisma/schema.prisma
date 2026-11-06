@@ -57,6 +57,12 @@ model OrgExperience {
   createdAt    DateTime @default(now())
 }
 
+model SiteContent {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
 model AdminUser {
   id           Int      @id @default(autoincrement())
   username     String   @unique

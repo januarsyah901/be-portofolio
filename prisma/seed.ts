@@ -1,3 +1,4 @@
+import { SITE_CONTENT_DEFAULTS } from '../src/lib/siteContentDefaults';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -272,6 +273,16 @@ async function main() {
     console.log('Org experience seeded.');
   } else {
     console.log('Org experience already exists, skipping.');
+  }
+
+  // 6. Seed editable site sections (experience, skills, about, contact) — only the missing ones.
+  // Deleting a section through the API/MCP resets it to this built-in text on the next boot.
+  for (const [key, value] of Object.entries(SITE_CONTENT_DEFAULTS)) {
+    const existing = await prisma.siteContent.findUnique({ where: { key } });
+    if (!existing) {
+      await prisma.siteContent.create({ data: { key, value: value as object } });
+      console.log(`Site content "${key}" seeded.`);
+    }
   }
 
   console.log('Seeding selesai!');
