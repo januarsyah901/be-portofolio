@@ -6,8 +6,10 @@ WORKDIR /usr/src/app
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+# The schema must exist before `prisma generate` (also run by the postinstall hook).
+COPY prisma ./prisma
 
-RUN npm install && npx prisma generate
+RUN npm ci && npx prisma generate
 
 COPY . .
 
