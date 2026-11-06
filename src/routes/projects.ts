@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authenticateAdminOrReadToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateAdminOrReadToken, authenticateAdminOrWriteToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.get('/admin-list', authenticateAdminOrReadToken, async (_req: Authenticat
 });
 
 // POST /api/admin/projects - Create a new project
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { title, description, imageUrl, liveUrl, githubUrl, tags, order, visible } = req.body;
 
   if (!title || !description) {
@@ -60,7 +60,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 });
 
 // PUT /api/projects/reorder - Reorder projects (bulk update)
-router.put('/reorder', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/reorder', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { orderedIds } = req.body;
 
   if (!Array.isArray(orderedIds)) {
@@ -84,7 +84,7 @@ router.put('/reorder', authenticateToken, async (req: AuthenticatedRequest, res:
 });
 
 // PUT /api/admin/projects/:id - Update an existing project
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const { title, description, imageUrl, liveUrl, githubUrl, tags, order, visible } = req.body;
 
@@ -124,7 +124,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // DELETE /api/admin/projects/:id - Delete a project
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
 
   try {

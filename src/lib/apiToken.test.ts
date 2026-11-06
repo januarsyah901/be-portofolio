@@ -5,6 +5,8 @@ import {
   hashApiToken,
   isApiToken,
   normalizeTokenName,
+  normalizeTokenScope,
+  canWrite,
 } from './apiToken';
 
 describe('generateApiToken', () => {
@@ -49,5 +51,27 @@ describe('normalizeTokenName', () => {
     expect(normalizeTokenName('   ')).toBeNull();
     expect(normalizeTokenName('x'.repeat(61))).toBeNull();
     expect(normalizeTokenName(42)).toBeNull();
+  });
+});
+
+describe('normalizeTokenScope', () => {
+  it('defaults to read when omitted', () => {
+    expect(normalizeTokenScope(undefined)).toBe('read');
+  });
+
+  it('accepts only known scopes', () => {
+    expect(normalizeTokenScope('read')).toBe('read');
+    expect(normalizeTokenScope('write')).toBe('write');
+    expect(normalizeTokenScope('admin')).toBeNull();
+    expect(normalizeTokenScope(null)).toBeNull();
+    expect(normalizeTokenScope('')).toBeNull();
+  });
+});
+
+describe('canWrite', () => {
+  it('is true only for the write scope', () => {
+    expect(canWrite('write')).toBe(true);
+    expect(canWrite('read')).toBe(false);
+    expect(canWrite('')).toBe(false);
   });
 });

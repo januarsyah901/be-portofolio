@@ -25,6 +25,20 @@ export function extractBearer(header: string | undefined): string | null {
   return credential;
 }
 
+export const TOKEN_SCOPES = ['read', 'write'] as const;
+export type TokenScope = (typeof TOKEN_SCOPES)[number];
+
+/** Validates a user-supplied scope. Missing/undefined defaults to "read"; anything else invalid is null. */
+export function normalizeTokenScope(scope: unknown): TokenScope | null {
+  if (scope === undefined) return 'read';
+  return TOKEN_SCOPES.find((s) => s === scope) ?? null;
+}
+
+/** Only tokens explicitly scoped "write" may modify data. */
+export function canWrite(scope: string): boolean {
+  return scope === 'write';
+}
+
 /** Validates a user-supplied token name. Returns the trimmed name or null. */
 export function normalizeTokenName(name: unknown): string | null {
   if (typeof name !== 'string') return null;

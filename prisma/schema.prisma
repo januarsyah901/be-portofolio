@@ -55,6 +55,7 @@ model ApiToken {
   name       String
   tokenHash  String    @unique
   prefix     String
+  scope      String    @default("read")
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
   revokedAt  DateTime?

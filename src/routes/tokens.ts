@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
-import { MAX_ACTIVE_TOKENS, generateApiToken, normalizeTokenName } from '../lib/apiToken';
+import { MAX_ACTIVE_TOKENS, generateApiToken, normalizeTokenName, normalizeTokenScope } from '../lib/apiToken';
 
 const router = Router();
 
@@ -12,6 +12,7 @@ const publicFields = {
   id: true,
   name: true,
   prefix: true,
+  scope: true,
   createdAt: true,
   lastUsedAt: true,
   revokedAt: true
@@ -38,6 +39,11 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     return res.status(400).json({ message: 'Nama token wajib diisi (1-60 karakter).' });
   }
 
+  const scope = normalizeTokenScope(req.body?.scope);
+  if (!scope) {
+    return res.status(400).json({ message: 'Scope token harus "read" atau "write".' });
+  }
+
   try {
     const activeCount = await prisma.apiToken.count({ where: { revokedAt: null } });
     if (activeCount >= MAX_ACTIVE_TOKENS) {
@@ -48,7 +54,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 
     const { token, hash, prefix } = generateApiToken();
     const record = await prisma.apiToken.create({
-      data: { name, tokenHash: hash, prefix },
+      data: { name, tokenHash: hash, prefix, scope },
       select: publicFields
     });
 

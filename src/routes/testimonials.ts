@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authenticateAdminOrReadToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateAdminOrReadToken, authenticateAdminOrWriteToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.get('/admin-list', authenticateAdminOrReadToken, async (_req: Authenticat
 });
 
 // POST /api/admin/testimonials - Create a new testimonial
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { name, role, company, avatarUrl, text, rating, visible } = req.body;
 
   if (!name || !role || !text) {
@@ -59,7 +59,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 });
 
 // PUT /api/admin/testimonials/:id - Update an existing testimonial
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const { name, role, company, avatarUrl, text, rating, visible } = req.body;
 
@@ -98,7 +98,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // DELETE /api/admin/testimonials/:id - Delete a testimonial
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
 
   try {
