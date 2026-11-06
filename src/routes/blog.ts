@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
-import { authenticateToken, authenticateAdminOrReadToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateAdminOrReadToken, authenticateAdminOrWriteToken, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.get('/admin-list', authenticateAdminOrReadToken, async (_req: Authenticat
 });
 
 // POST /api/admin/blog - Create a new blog video
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { videoId, caption, tags, order, visible } = req.body;
 
   if (!videoId) {
@@ -57,7 +57,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 });
 
 // PUT /api/admin/blog/:id - Update an existing blog video
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const { videoId, caption, tags, order, visible } = req.body;
 
@@ -94,7 +94,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // DELETE /api/admin/blog/:id - Delete a blog video
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', authenticateAdminOrWriteToken, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
 
   try {
