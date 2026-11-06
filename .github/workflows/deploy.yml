@@ -83,3 +83,7 @@ jobs:
             echo "portfolio-api is not healthy. Check: docker logs portfolio-api" >&2
             exit 1
           fi
+          # The app must answer on 3001, the port Caddy proxies to (a wrong PORT keeps the container "up" but gives 502).
+          docker exec portfolio-api node -e "require('http').get('http://localhost:3001/api/projects',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" \
+            || { echo "portfolio-api is not answering on :3001. Check: docker logs portfolio-api" >&2; exit 1; }
+          echo "portfolio-api answers on :3001"
