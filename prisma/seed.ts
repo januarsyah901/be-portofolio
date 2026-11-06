@@ -224,6 +224,56 @@ async function main() {
     console.log('Testimonials already exist, skipping.');
   }
 
+  // 5. Seed Org/Event experience — only if the table is empty (first deploy). After that the
+  // content is managed through the API/MCP; deleting every entry makes the next boot re-seed.
+  const existingOrg = await prisma.orgExperience.count();
+  if (existingOrg === 0) {
+    const orgData = [
+      {
+        period: '2025 - Sekarang',
+        organization: "JAVA (Jama'ah Vokasi Al-'Alim) SV UGM",
+        role: 'Kepala Departemen Media',
+        description: 'Memimpin departemen media dalam memproduksi konten dakwah kreatif, pemeliharaan website resmi, serta orkestrasi publikasi media sosial organisasi.',
+        highlights: [
+          'Mengembangkan dan mengelola website resmi JAVA SV UGM',
+          'Mengorkestrasi strategi konten media sosial (@javaugm) dan branding organisasi',
+          'Memimpin serta mengoordinasikan tim desain visual, dokumentasi video, dan copywriting'
+        ],
+        type: 'organization',
+        logo: '/assets/org-logo.png',
+        order: 1
+      },
+      {
+        period: '2026 - Sekarang',
+        organization: 'Google Student Ambassador Indonesia (Batch 2)',
+        role: 'Ambassador & Ketua Tim GSA Buddy',
+        description: 'Menjadi ambassador Google untuk mahasiswa Indonesia dan memimpin tim GSA Buddy.',
+        highlights: [
+          'Memimpin tim GSA Buddy sebagai ketua tim',
+          'Berkontribusi dalam kegiatan konten dan event komunitas Google Student Ambassador'
+        ],
+        type: 'organization',
+        order: 2
+      },
+      {
+        period: '2022',
+        organization: 'GALAXY 6.0',
+        role: 'Ketua Divisi Acara Malam Puncak',
+        description: 'Kepanitiaan event Olimpiade & Pensi Pelajar, bertanggung jawab atas acara malam puncak.',
+        highlights: ['Memimpin divisi acara malam puncak pada rangkaian GALAXY 6.0'],
+        type: 'event',
+        order: 3
+      }
+    ];
+
+    for (const entry of orgData) {
+      await prisma.orgExperience.create({ data: entry });
+    }
+    console.log('Org experience seeded.');
+  } else {
+    console.log('Org experience already exists, skipping.');
+  }
+
   console.log('Seeding selesai!');
 }
 

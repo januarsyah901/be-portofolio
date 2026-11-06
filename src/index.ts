@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import projectRoutes from './routes/projects';
 import testimonialRoutes from './routes/testimonials';
 import blogRoutes from './routes/blog';
+import orgExperienceRoutes from './routes/orgExperience';
 import uploadRoutes from './routes/upload';
 import tokenRoutes from './routes/tokens';
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/org-experience', orgExperienceRoutes);
 app.use('/api/admin/upload', uploadRoutes);
 app.use('/api/admin/tokens', tokenRoutes);
 
